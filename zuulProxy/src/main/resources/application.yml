@@ -1,0 +1,23 @@
+ribbon:
+ eureka: 
+   enabled: false
+#connection timeout is important to run it for longer duration in debugging
+server: 
+ port: 8080
+zuul:
+  host:
+    connect-timeout-millis: 120000
+    socket-timeout-millis: 120000
+    max-total-connections: 200
+    max-per-route-connections: 20
+    time-unit: MILLISECONDS
+    time-to-live: 10000
+  routes:
+    auth:
+      path: /auth/**
+      sensitiveHeaders:
+      url: http://localhost:8081/auth/
+    resource:
+      path: /resource/**
+      sensitiveHeaders:
+      url: http://localhost:8082/resource/
