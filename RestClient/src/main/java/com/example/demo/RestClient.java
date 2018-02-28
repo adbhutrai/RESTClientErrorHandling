@@ -1,6 +1,7 @@
 package com.example.demo;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,19 +25,19 @@ public class RestClient {
 
 	public RestClient() {
 		restTemplate = new RestTemplate();
-		restTemplate.setErrorHandler(new ErrorResponseHandler());
+		//restTemplate.setErrorHandler(new ErrorResponseHandler());
 		objectMapper = new ObjectMapper();
 	}
 
-	public Response<Bird> getResource(String url) {
-		Response<Bird> responseObj = new Response<>();
+	public ApiResponse<Bird> getResource(String url) {
+		ApiResponse<Bird> responseObj = new ApiResponse<>();
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 		HttpEntity<String> request = new HttpEntity<String>(headers);
 		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
 		String responseBody = response.getBody();
 		try {
-			if (RestUtil.isError(response.getStatusCode())) {
+			if (isError(response.getStatusCode())) {
 				ErrorDetails error = objectMapper.readValue(responseBody, ErrorDetails.class);
 				responseObj.setError(error);
 			} else {
@@ -50,8 +51,8 @@ public class RestClient {
 		return responseObj;
 	}
 
-	public Response<Bird> postResource(String url, Bird bird) {
-		Response<Bird> responseObj = new Response<>();
+	public ApiResponse<URI> postResource(String url, Bird bird) {
+		ApiResponse<URI> responseObj = new ApiResponse<>();
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
 		headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
@@ -59,12 +60,12 @@ public class RestClient {
 		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
 		String responseBody = response.getBody();
 		try {
-			if (RestUtil.isError(response.getStatusCode())) {
+			if (isError(response.getStatusCode())) {
 				ErrorDetails error = objectMapper.readValue(responseBody, ErrorDetails.class);
 				responseObj.setError(error);
 			} else {
 				if (response.getStatusCode().equals(HttpStatus.CREATED)) {
-					responseObj.setLocation(response.getHeaders().getLocation());
+					responseObj.setResponse(response.getHeaders().getLocation());
 					responseObj.setSuccess(true);
 				} else {
 					responseObj.setSuccess(false);
@@ -75,5 +76,38 @@ public class RestClient {
 		}
 		return responseObj;
 	}
+	public static boolean isError(HttpStatus status) {
+        HttpStatus.Series series = status.series();
+        return (HttpStatus.Series.CLIENT_ERROR.equals(series)
+                || HttpStatus.Series.SERVER_ERROR.equals(series));
+    }
+
+	public ApiResponse<URI> updateResource(String url, Bird bird) {
+		ApiResponse<URI> responseObj = new ApiResponse<>();
+		HttpHeaders headers = new HttpHeaders();
+		headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+		headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+		HttpEntity<Bird> request = new HttpEntity<>(bird, headers);
+		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+		String responseBody = response.getBody();
+		try {
+			if (isError(response.getStatusCode())) {
+				ErrorDetails error = objectMapper.readValue(responseBody, ErrorDetails.class);
+				responseObj.setError(error);
+			} else {
+				if (response.getStatusCode().equals(HttpStatus.CREATED)) {
+					responseObj.setResponse(response.getHeaders().getLocation());
+					responseObj.setSuccess(true);
+				} else {
+					responseObj.setSuccess(false);
+				}
+			}
+		} catch (IOException e) {
+			log.error("Error with response", e);
+		}
+		return responseObj;
+	}
+
+
 
 }

@@ -21,12 +21,12 @@ public class RestClientMain {
 		//System.out.println(RestClientMain.getBirds("http://localhost:8080/birds/1"));
 		
 		RestClient client = new RestClient();
-		Response<Bird> response = client.getResource("http://localhost:8080/birds/5");
+		ApiResponse<Bird> response = client.getResource("http://localhost:8080/birds/5");
 		System.out.println("Response successfull: "+response.isSuccess());
 		System.out.println("Response : "+response.getError());
 		System.out.println("Response : "+response.getResponse());
 		
-		Response<Bird> response2 = client.getResource("http://localhost:8080/birds/1");
+		ApiResponse<Bird> response2 = client.getResource("http://localhost:8080/birds/1");
 		System.out.println("Response successfull: "+response2.isSuccess());
 		System.out.println("Response : "+response2.getError());
 		System.out.println("Response : "+response2.getResponse());
